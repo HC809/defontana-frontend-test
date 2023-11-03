@@ -1,9 +1,10 @@
-import Image from "next/image";
+"use client";
+import PokemonsPage from "./pokemons";
 
-export default function Home() {
+export default function HomePage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <p>Hello World!</p>
+      <PokemonsPage />
     </main>
   );
 }
