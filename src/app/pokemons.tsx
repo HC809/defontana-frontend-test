@@ -1,39 +1,59 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Pokemon } from "@/types/Pokemon";
 import { PokemonApiResponse } from "@/types/PokemonApiResponse";
 import PokemonTable from "@/components/PokemonTable";
 import { pokemonApiRequest } from "@/api/apiConfig";
-import Image from "next/image";
+import { off } from "process";
 
 const PokemonsPage = () => {
-  const [paginationPokemons, setPaginationPokemons] = useState<Pokemon[]>([]); //Pokemons a mostrar mientras no se haya activado isSearching a true
-  const [offset, setOffset] = useState<number>(0); //param para paginacion
-  const [limit, setLimit] = useState<number>(10); //param para paginacion
-  const [page, setPage] = useState<number>(1);
+  const [displayedPokemons, setDisplayedPokemons] = useState<Pokemon[]>([]);
+  const [allPokemons, setAllPokemons] = useState<Pokemon[]>([]);
 
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [totalPokemons, setTotalPokemons] = useState<number>(0); //param para obtener total de Pokemons
-  const [allPokemons, setAllPokemons] = useState<Pokemon[]>([]); //todos los Pokemons
+  const [totalSearchingPokemons, setTotalSearchingPokemons] =
+    useState<number>(0); //param para obtener total de Pokemons
 
-  const [searchedPokemons, setSearchedPokemons] = useState<Pokemon[]>([]);
-
+  const [totalPokemons, setTotalPokemons] = useState<number>(0);
+  const [offset, setOffset] = useState<number>(0); //param para paginacion
+  const [limit, setLimit] = useState<number>(10); //param para paginacion
+  const [page, setPage] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Efecto para la paginación
+  // Efecto para la paginación cuando no se esta buscando
   useEffect(() => {
     if (!isSearching) {
+      console.log("useEffect - getAllWithPagination");
       setLoading(true);
       pokemonApiRequest
         .getAllWithPagination(offset, limit)
         .then((data) => {
-          setPaginationPokemons(data.results);
+          setDisplayedPokemons(data.results);
           setTotalPokemons(data.count);
         })
         .catch(console.error)
         .finally(() => setLoading(false));
     }
   }, [offset, limit, isSearching]);
+
+  // Manejo de la búsqueda
+  useEffect(() => {
+    // Filtrado y paginación para el modo de búsqueda
+    if (isSearching) {
+      if (searchTerm.trim() !== "") {
+        console.log("useEffect - filteredPokemons");
+        const filteredPokemons = allPokemons.filter((pokemon) =>
+          pokemon.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        setTotalSearchingPokemons(filteredPokemons.length);
+        setDisplayedPokemons(filteredPokemons.slice(offset, offset + limit));
+      } else {
+        console.log("useEffect - setAllPokemons");
+        setTotalSearchingPokemons(totalPokemons);
+        setDisplayedPokemons(allPokemons.slice(offset, offset + limit));
+      }
+    }
+  }, [searchTerm, allPokemons, offset, limit, totalPokemons]);
 
   /*
   Función para obtener todos los Pokémon para la búsqueda
@@ -42,9 +62,12 @@ const PokemonsPage = () => {
   Y no solamente los que estan en la tabla (obtenidos por paginación)
   */
   const fetchAllPokemonsForSearch = async () => {
+    console.log("fetchAllPokemonsForSearch");
     setLoading(true);
     try {
-      const data = await pokemonApiRequest.getAll(totalPokemons);
+      const data: PokemonApiResponse = await pokemonApiRequest.getAll(
+        totalPokemons
+      );
       setAllPokemons(data.results);
     } catch (error) {
       console.error(error);
@@ -53,19 +76,16 @@ const PokemonsPage = () => {
     }
   };
 
-  // Manejo de la búsqueda
-  useEffect(() => {
-    // Filtrado y paginación para el modo de búsqueda
-    if (isSearching) {
-      const filteredPokemons = allPokemons.filter((pokemon) =>
-        pokemon.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setSearchedPokemons(filteredPokemons.slice(offset, offset + limit));
+  const handleSearch = async (value: string) => {
+    console.log("searchPokemon");
+    if (!isSearching) {
+      await fetchAllPokemonsForSearch();
+      setIsSearching(true);
     }
-  }, [searchTerm, allPokemons, offset, limit]);
 
-  // Filtrado condicional basado en si está buscando o no
-  const displayedPokemons = isSearching ? searchedPokemons : paginationPokemons;
+    setOffset(0);
+    setSearchTerm(value);
+  };
 
   const goToNextPage = () => {
     setPage((currentPage) => currentPage + 1);
@@ -80,12 +100,10 @@ const PokemonsPage = () => {
   if (loading) return <div>Cargando...</div>;
 
   console.log(offset);
-  console.log(limit);
-  console.log(totalPokemons);
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <select
+    <>
+      {/* <select
         value={limit}
         onChange={(e) => setLimit(Number(e.target.value))}
         className="mb-2 text-sm"
@@ -95,15 +113,16 @@ const PokemonsPage = () => {
             {size} registros por pagina
           </option>
         ))}
-      </select>
+      </select> */}
       <input
         type="text"
         placeholder="Buscar Pokémon"
         value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
+        onChange={(e) => handleSearch(e.target.value)}
         className="mb-4 p-2 border rounded"
       />
-      |
+      <p>{!isSearching ? totalPokemons : totalSearchingPokemons}</p>
+      <p>Page: {page}</p>
       <PokemonTable pokemons={displayedPokemons} initNumber={offset} />
       <div className="py-2">
         {/* Botones de paginación, condicionales basados en la paginación del cliente o del servidor */}
@@ -116,7 +135,7 @@ const PokemonsPage = () => {
           </button>
         )}
         {((!isSearching && offset + limit < totalPokemons) ||
-          (isSearching && offset + limit < searchedPokemons.length)) && (
+          (isSearching && offset + limit < totalSearchingPokemons)) && (
           <button
             onClick={goToNextPage}
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r"
@@ -125,7 +144,7 @@ const PokemonsPage = () => {
           </button>
         )}
       </div>
-    </main>
+    </>
   );
 };
 
