@@ -46,12 +46,15 @@ const PokemonTable = ({ pokemons, initNumber }: PokemonTableProps) => {
                       {pokemon.name}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                      <div className="flex justify-center">
+                      <div className="flex justify-center items-center">
                         <a
                           href={`/pokemon/${pokemon.name}`}
-                          className="text-indigo-600 hover:text-indigo-900"
+                          className="text-indigo-600 hover:text-indigo-900 flex items-center"
                         >
                           <EyeIcon className="h-6 w-6" aria-hidden="true" />
+                          <span className="hidden sm:inline ml-2">
+                            Seleccionar
+                          </span>
                         </a>
                       </div>
                     </td>
