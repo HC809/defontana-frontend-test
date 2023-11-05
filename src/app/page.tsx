@@ -51,28 +51,30 @@ const HomePage = () => {
       <SearchInput value={searchTerm} onChange={handleSearch} />
       <PokemonCount count={totalPokemons} />
 
-      <div className="flex flex-1 min-w-0">
-        <div className="flex-1">
+      <div className="flex flex-1 min-w-0 mt-4">
+        <div className="flex-1 flex flex-col">
           <PokemonTable
             pokemons={displayedPokemons}
             initNumber={offset}
             onPokemonSelect={handlePokemonSelection}
           />
+          <PaginationControls
+            page={page}
+            totalPages={totalPages}
+            goToNextPage={goToNextPage}
+            goToPrevPage={goToPrevPage}
+          />
         </div>
 
         {selectedPokemon && (
           <div className="w-full max-w-md flex-none">
-            <PokemonDetails pokemon={selectedPokemon} />
+            <PokemonDetails
+              pokemon={selectedPokemon}
+              onDeselect={() => setSelectedPokemon(null)}
+            />
           </div>
         )}
       </div>
-
-      <PaginationControls
-        page={page}
-        totalPages={totalPages}
-        goToNextPage={goToNextPage}
-        goToPrevPage={goToPrevPage}
-      />
     </main>
   );
 };

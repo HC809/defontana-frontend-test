@@ -1,25 +1,39 @@
 import Image from "next/image";
 import { PokemonDetail } from "@/types/PokemonDetails";
 
-const PokemonDetails = ({ pokemon }: { pokemon: PokemonDetail }) => {
+type PokemonDetailsProps = {
+  pokemon: PokemonDetail;
+  onDeselect: () => void;
+};
+
+const PokemonDetails = ({ pokemon, onDeselect }: PokemonDetailsProps) => {
   return (
-    <div className="bg-white shadow-lg rounded-lg overflow-hidden border">
-      <div className="relative h-64 w-64 flex items-center justify-center">
-        {" "}
+    <div className="bg-white shadow-lg rounded-lg overflow-hidden border-2 border-purple-500 h-full flex flex-col w-full max-w-md flex-none ml-4">
+      <div className="flex justify-between items-center p-4">
+        <h2 className="text-2xl font-bold text-gray-800 capitalize">
+          {pokemon.name}
+        </h2>
+        <button
+          onClick={onDeselect}
+          className="text-purple-500 hover:bg-gray-100 p-3 rounded-full text-lg focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50"
+          aria-label="Cerrar"
+        >
+          X
+        </button>
+      </div>
+      <div className="relative h-3/4 w-full pl-16">
         <Image
           src={pokemon.imgUrl}
           alt={`Imagen de ${pokemon.name}`}
-          layout="responsive"
-          width={100}
-          height={100}
-          objectFit="contain"
+          width={300}
+          height={300}
           className="rounded-lg"
         />
       </div>
 
       <div className="p-4">
         <h2 className="text-2xl font-bold mb-2 text-gray-800 capitalize">
-          {pokemon.name}
+          Detalles
         </h2>
         <p className="text-gray-700">
           <span className="font-bold">ID:</span> {pokemon.id}
@@ -33,33 +47,9 @@ const PokemonDetails = ({ pokemon }: { pokemon: PokemonDetail }) => {
       </div>
       <div className="flex p-4 border-t border-gray-200 text-gray-700">
         <div className="flex-1 inline-flex items-center">
-          <svg
-            className="h-6 w-6 text-gray-500"
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path d="M3 3v18h18"></path>
-            <path d="M18.5 3h-13l6.5 9 6.5-9"></path>
-          </svg>
           <span className="ml-2">Height: {pokemon.height / 10} m</span>
         </div>
         <div className="flex-1 inline-flex items-center">
-          <svg
-            className="h-6 w-6 text-gray-500"
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path d="M3 3v18h18"></path>
-            <path d="M18.5 3h-13l6.5 9 6.5-9"></path>
-          </svg>
           <span className="ml-2">Weight: {pokemon.weight / 10} kg</span>
         </div>
       </div>
