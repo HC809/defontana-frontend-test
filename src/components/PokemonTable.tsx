@@ -1,13 +1,50 @@
-import React from "react";
+import React, { useState } from "react";
 import { Pokemon } from "../types/Pokemon";
 import { EyeIcon } from "@heroicons/react/24/outline";
+import { pokemonApiRequest } from "@/api/apiConfig";
+import { PokemonDetailApiResponse } from "@/types/PokemonDetailApiResponse";
+import { PokemonDetail } from "@/types/PokemonDetails";
 
 interface PokemonTableProps {
   pokemons: Pokemon[];
   initNumber: number;
+  onPokemonSelect: (pokemonName: PokemonDetail) => void;
 }
 
-const PokemonTable = ({ pokemons, initNumber }: PokemonTableProps) => {
+const PokemonTable = ({
+  pokemons,
+  initNumber,
+  onPokemonSelect,
+}: PokemonTableProps) => {
+  const [loading, setLoading] = useState<boolean>(true);
+
+  const fetchPokemon = async (pokemonName: string) => {
+    setLoading(true);
+    try {
+      const { id, name, sprites, height, weight }: PokemonDetailApiResponse =
+        await pokemonApiRequest.getByName(pokemonName);
+
+      const pokemonDetail: PokemonDetail = {
+        name,
+        id,
+        weight,
+        height,
+        imgUrl: sprites.other.home.front_default,
+      };
+
+      console.log(pokemonDetail);
+      onPokemonSelect(pokemonDetail);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePokemonSelection = async (name: string) => {
+    await fetchPokemon(name);
+  };
+
   return (
     <div className="flex flex-col">
       <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -48,7 +85,8 @@ const PokemonTable = ({ pokemons, initNumber }: PokemonTableProps) => {
                     <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                       <div className="flex justify-center items-center">
                         <a
-                          href={`/pokemon/${pokemon.name}`}
+                          //href={`/pokemon/${pokemon.name}`}
+                          onClick={() => handlePokemonSelection(pokemon.name)}
                           className="text-indigo-600 hover:text-indigo-900 flex items-center"
                         >
                           <EyeIcon className="h-6 w-6" aria-hidden="true" />
