@@ -1,5 +1,4 @@
-import { Pokemon } from "@/types/Pokemon";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 type SearchInputProps = {
   value: string;
@@ -15,21 +14,34 @@ const SearchInput = React.memo(
     pokemonSuggestions,
     onPokemonSuggestionClick,
   }: SearchInputProps) => {
+    const [isFocused, setIsFocused] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setIsFocused(false);
+      }
+    };
+
+    useEffect(() => {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, []);
+
     return (
-      <div className="relative mb-4">
-        {" "}
-        {/* Contenedor con posición relativa */}
+      <div className="relative mb-4" ref={ref}>
         <input
           type="text"
           placeholder="Buscar Pokémon"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="p-2 border rounded w-full" // Asegúrate de que el input tenga un ancho definido
+          onFocus={() => setIsFocused(true)}
+          className="p-2 border rounded w-full"
         />
-        {pokemonSuggestions.length > 0 && (
+        {isFocused && pokemonSuggestions.length > 0 && (
           <ul className="list-none mt-1 absolute z-10 w-full bg-white border rounded shadow-lg">
-            {" "}
-            {/* Menú de sugerencias con posición absoluta */}
             {pokemonSuggestions.map((suggestion) => (
               <li
                 key={suggestion}
