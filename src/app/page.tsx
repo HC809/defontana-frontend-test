@@ -9,13 +9,17 @@ import SearchInput from "@/components/SearchInput";
 import PokemonCount from "@/components/PokemonCount";
 import PaginationControls from "@/components/PaginationControls";
 import usePagination from "@/hooks/usePagination";
+import { Pokemon } from "@/types/Pokemon";
 
 const HomePage = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [totalPokemons, setTotalPokemons] = useState<number>(0);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState<boolean>(true);
   const [selectedPokemon, setSelectedPokemon] = useState<PokemonDetail | null>(
     null
   );
+  const [displayedPokemons, setDisplayedPokemons] = useState<Pokemon[]>([]);
 
   //Custom Hooks
   const { pokemons, loading } = usePokemons();
@@ -23,22 +27,29 @@ const HomePage = () => {
     usePagination(totalPokemons, searchTerm);
 
   useEffect(() => {
-    const filteredPokemons = pokemons.filter((pokemon) =>
-      pokemon.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setTotalPokemons(filteredPokemons.length);
-  }, [searchTerm, pokemons]);
+    let filteredPokemons = pokemons;
 
-  const displayedPokemons = searchTerm
-    ? pokemons
+    if (searchTerm) {
+      filteredPokemons = pokemons
         .filter((pokemon) =>
           pokemon.name.toLowerCase().includes(searchTerm.toLowerCase())
         )
-        .slice(0, LIMIT)
-    : pokemons.slice(offset, offset + LIMIT);
+        .slice(0, LIMIT);
+      setTotalPokemons(filteredPokemons.length);
+      setSuggestions(
+        filteredPokemons.slice(0, 5).map((pokemon) => pokemon.name)
+      );
+    } else {
+      setTotalPokemons(pokemons.length);
+      setSuggestions([]);
+    }
+
+    setDisplayedPokemons(filteredPokemons.slice(offset, offset + LIMIT));
+  }, [searchTerm, pokemons, offset]);
 
   const handleSearch = useCallback((value: string) => {
     setSearchTerm(value);
+    setShowSuggestions(true);
   }, []);
 
   const handlePokemonSelection = (pokemonDetail: PokemonDetail) =>
@@ -48,7 +59,16 @@ const HomePage = () => {
 
   return (
     <main className="flex min-h-screen flex-col p-10">
-      <SearchInput value={searchTerm} onChange={handleSearch} />
+      <SearchInput
+        value={searchTerm}
+        onChange={handleSearch}
+        pokemonSuggestions={showSuggestions ? suggestions : []}
+        onPokemonSuggestionClick={(value) => {
+          setSearchTerm(value);
+          setSuggestions([]);
+          setShowSuggestions(false);
+        }}
+      />
       <PokemonCount count={totalPokemons} />
 
       <div className="flex flex-1 min-w-0 mt-4">
