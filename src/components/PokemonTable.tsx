@@ -85,7 +85,6 @@ const PokemonTable = ({
                     <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                       <div className="flex justify-center items-center">
                         <a
-                          //href={`/pokemon/${pokemon.name}`}
                           onClick={() => handlePokemonSelection(pokemon.name)}
                           className="text-indigo-600 hover:text-indigo-900 flex items-center"
                         >

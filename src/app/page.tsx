@@ -20,6 +20,7 @@ const HomePage = () => {
     null
   );
   const [displayedPokemons, setDisplayedPokemons] = useState<Pokemon[]>([]);
+  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
   //Custom Hooks
   const { pokemons, loading } = usePokemons();
@@ -52,8 +53,15 @@ const HomePage = () => {
     setShowSuggestions(true);
   }, []);
 
-  const handlePokemonSelection = (pokemonDetail: PokemonDetail) =>
+  const handlePokemonSelection = (pokemonDetail: PokemonDetail) => {
     setSelectedPokemon(pokemonDetail);
+    if (window.innerWidth < 768) setIsModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedPokemon(null);
+    setIsModalVisible(false);
+  };
 
   if (loading) return <div>Cargando...</div>;
 
@@ -69,29 +77,49 @@ const HomePage = () => {
           setShowSuggestions(false);
         }}
       />
+
       <PokemonCount count={totalPokemons} />
 
       <div className="flex flex-1 min-w-0 mt-4">
         <div className="flex-1 flex flex-col">
-          <PokemonTable
-            pokemons={displayedPokemons}
-            initNumber={offset}
-            onPokemonSelect={handlePokemonSelection}
-          />
-          <PaginationControls
-            page={page}
-            totalPages={totalPages}
-            goToNextPage={goToNextPage}
-            goToPrevPage={goToPrevPage}
-          />
+          <div
+            className={`flex-1 flex flex-col ${selectedPokemon && "lg:block"} ${
+              isModalVisible && "hidden"
+            }`}
+          >
+            <PokemonTable
+              pokemons={displayedPokemons}
+              initNumber={offset}
+              onPokemonSelect={handlePokemonSelection}
+            />
+            <PaginationControls
+              page={page}
+              totalPages={totalPages}
+              goToNextPage={goToNextPage}
+              goToPrevPage={goToPrevPage}
+            />
+          </div>
         </div>
 
         {selectedPokemon && (
-          <div className="w-full max-w-md flex-none">
+          <div className="w-full lg:w-auto max-w-md lg:flex-none">
             <PokemonDetails
               pokemon={selectedPokemon}
               onDeselect={() => setSelectedPokemon(null)}
             />
+          </div>
+        )}
+
+        {isModalVisible && selectedPokemon && (
+          <div className="fixed inset-0 z-50 overflow-auto bg-smoke-light flex items-center justify-center">
+            <div className="relative p-8 bg-white w-full max-w-md m-auto flex-col flex rounded-lg shadow-lg">
+              <div className="flex flex-col items-center justify-center">
+                <PokemonDetails
+                  pokemon={selectedPokemon}
+                  onDeselect={handleCloseModal}
+                />
+              </div>
+            </div>
           </div>
         )}
       </div>
