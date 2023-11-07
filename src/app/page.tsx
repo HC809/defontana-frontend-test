@@ -12,6 +12,7 @@ import usePagination from "@/hooks/usePagination";
 import { Pokemon } from "@/types/Pokemon";
 import { Title } from "@/components/Title";
 import "animate.css";
+import PokemonAlphabetCountTable from "@/components/PokemonAlphabetCountTable";
 
 const HomePage = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -129,8 +130,10 @@ const HomePage = () => {
               onDeselect={handleCloseModal}
             />
           </div>
-        )}
+        )}    
       </div>
+
+      <PokemonAlphabetCountTable pokemons={pokemons} />
     </main>
   );
 };
