@@ -5,7 +5,6 @@ axiosRequest.defaults.baseURL = "https://pokeapi.co/api/v2/pokemon";
 
 axiosRequest.interceptors.response.use(
   (response) => {
-    console.log(response.data);
     return response;
   },
   async function (error) {

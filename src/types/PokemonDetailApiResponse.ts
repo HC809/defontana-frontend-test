@@ -2,20 +2,12 @@ export interface PokemonDetailApiResponse {
   abilities: Ability[];
   base_experience: number;
   forms: Form[];
-  game_indices: Index[];
   height: number;
-  held_items: any[];
   id: number;
   is_default: boolean;
-  location_area_encounters: string;
-  moves: Mfe[];
   name: string;
   order: number;
-  past_abilities: any[];
-  past_types: any[];
-  species: Species;
   sprites: Sprites;
-  stats: Stat[];
   types: Type[];
   weight: number;
 }

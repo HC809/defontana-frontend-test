@@ -3,39 +3,60 @@ import { Pokemon } from "../types/Pokemon";
 import { EyeIcon } from "@heroicons/react/24/outline";
 import { pokemonApiRequest } from "@/api/apiConfig";
 import { PokemonDetailApiResponse } from "@/types/PokemonDetailApiResponse";
-import { PokemonDetail } from "@/types/PokemonDetails";
+import { PokemonDetail, PokemonType } from "@/types/PokemonDetails";
+import BarLoader from "react-spinners/BarLoader";
 
 interface PokemonTableProps {
   pokemons: Pokemon[];
   initNumber: number;
   onPokemonSelect: (pokemonName: PokemonDetail) => void;
+  isPokemonDisplayed: boolean;
 }
 
 const PokemonTable = ({
   pokemons,
   initNumber,
   onPokemonSelect,
+  isPokemonDisplayed,
 }: PokemonTableProps) => {
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [selectedPokemon, setSelectedPokemon] = useState<string | null>(null);
 
   const fetchPokemon = async (pokemonName: string) => {
+    setSelectedPokemon(pokemonName);
     setLoading(true);
     try {
-      const { id, name, sprites, height, weight }: PokemonDetailApiResponse =
-        await pokemonApiRequest.getByName(pokemonName);
+      const {
+        id,
+        name,
+        sprites,
+        height,
+        weight,
+        types,
+      }: PokemonDetailApiResponse = await pokemonApiRequest.getByName(
+        pokemonName
+      );
+
+      const pokemonTypes: PokemonType[] = types?.map((typeSlot) => ({
+        slot: typeSlot.slot,
+        type: {
+          name: typeSlot.type.name,
+          url: typeSlot.type.url,
+        },
+      }));
 
       const pokemonDetail: PokemonDetail = {
         name,
         id,
         weight,
         height,
+        types: pokemonTypes,
         imgUrl: sprites.other.home.front_default,
       };
 
-      console.log(pokemonDetail);
       onPokemonSelect(pokemonDetail);
     } catch (error) {
-      console.error(error);
+      alert(`Error al obtener el Pokemon ${pokemonName}`);
     } finally {
       setLoading(false);
     }
@@ -75,24 +96,51 @@ const PokemonTable = ({
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {pokemons.map((pokemon, index) => (
-                  <tr key={index}>
+                  <tr key={pokemon.name}>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       {initNumber + index + 1}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-left capitalize">
+                    <td
+                      className={`px-6 py-4 whitespace-nowrap text-left capitalize ${
+                        isPokemonDisplayed && selectedPokemon === pokemon.name
+                          ? "text-purple-600 font-bold"
+                          : "text-gray-900"
+                      }`}
+                    >
                       {pokemon.name}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                       <div className="flex justify-center items-center">
-                        <a
+                        <button
                           onClick={() => handlePokemonSelection(pokemon.name)}
-                          className="text-indigo-600 hover:text-indigo-900 flex items-center"
+                          className={`text-purple-600 hover:text-indigo-900 flex items-center ${
+                            loading ||
+                            (isPokemonDisplayed &&
+                              selectedPokemon === pokemon.name)
+                              ? "disabled:opacity-50 text-gray-600"
+                              : "cursor-pointer"
+                          }`}
+                          disabled={
+                            loading ||
+                            (isPokemonDisplayed &&
+                              selectedPokemon === pokemon.name)
+                          }
                         >
-                          <EyeIcon className="h-6 w-6" aria-hidden="true" />
-                          <span className="hidden sm:inline ml-2">
-                            Seleccionar
-                          </span>
-                        </a>
+                          {loading && selectedPokemon === pokemon.name ? (
+                            <BarLoader
+                              loading={loading}
+                              aria-label="Loading Spinner"
+                              data-testid="loader"
+                            />
+                          ) : (
+                            <>
+                              <EyeIcon className="h-6 w-6" aria-hidden="true" />
+                              <span className="hidden sm:inline ml-2">
+                                Seleccionar
+                              </span>
+                            </>
+                          )}
+                        </button>
                       </div>
                     </td>
                   </tr>

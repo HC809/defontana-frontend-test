@@ -10,6 +10,8 @@ import PokemonCount from "@/components/PokemonCount";
 import PaginationControls from "@/components/PaginationControls";
 import usePagination from "@/hooks/usePagination";
 import { Pokemon } from "@/types/Pokemon";
+import { Title } from "@/components/Title";
+import "animate.css";
 
 const HomePage = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -20,7 +22,7 @@ const HomePage = () => {
     null
   );
   const [displayedPokemons, setDisplayedPokemons] = useState<Pokemon[]>([]);
-  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+  const [isSmallScreen, setIsSmallScreen] = useState<boolean>(false);
 
   //Custom Hooks
   const { pokemons, loading } = usePokemons();
@@ -55,71 +57,77 @@ const HomePage = () => {
 
   const handlePokemonSelection = (pokemonDetail: PokemonDetail) => {
     setSelectedPokemon(pokemonDetail);
-    if (window.innerWidth < 768) setIsModalVisible(true);
+    if (window.innerWidth < 950) setIsSmallScreen(true);
   };
 
   const handleCloseModal = () => {
     setSelectedPokemon(null);
-    setIsModalVisible(false);
+    setIsSmallScreen(false);
   };
 
   if (loading) return <div>Cargando...</div>;
 
   return (
-    <main className="flex min-h-screen flex-col p-10">
-      <SearchInput
-        value={searchTerm}
-        onChange={handleSearch}
-        pokemonSuggestions={showSuggestions ? suggestions : []}
-        onPokemonSuggestionClick={(value) => {
-          setSearchTerm(value);
-          setSuggestions([]);
-          setShowSuggestions(false);
-        }}
-      />
+    <main className="flex min-h-screen flex-col p-4">
+      <Title />
 
-      <PokemonCount count={totalPokemons} />
+      {!isSmallScreen && (
+        <>
+          <PokemonCount
+            text={searchTerm ? "Pokémon encontrados" : "Total de Pokémon"}
+            count={totalPokemons}
+          />
+          <SearchInput
+            value={searchTerm}
+            onChange={handleSearch}
+            pokemonSuggestions={showSuggestions ? suggestions : []}
+            onPokemonSuggestionClick={(value) => {
+              setSearchTerm(value);
+              setSuggestions([]);
+              setShowSuggestions(false);
+            }}
+          />
+        </>
+      )}
 
-      <div className="flex flex-1 min-w-0 mt-4">
-        <div className="flex-1 flex flex-col">
-          <div
-            className={`flex-1 flex flex-col ${selectedPokemon && "lg:block"} ${
-              isModalVisible && "hidden"
-            }`}
-          >
-            <PokemonTable
-              pokemons={displayedPokemons}
-              initNumber={offset}
-              onPokemonSelect={handlePokemonSelection}
-            />
-            <PaginationControls
-              page={page}
-              totalPages={totalPages}
-              goToNextPage={goToNextPage}
-              goToPrevPage={goToPrevPage}
-            />
-          </div>
-        </div>
-
-        {selectedPokemon && (
-          <div className="w-full lg:w-auto max-w-md lg:flex-none">
-            <PokemonDetails
-              pokemon={selectedPokemon}
-              onDeselect={() => setSelectedPokemon(null)}
-            />
+      <div
+        className={`flex flex-1 ${
+          !isSmallScreen ? "min-w-0" : "items-center justify-center"
+        } mt-4`}
+      >
+        {!isSmallScreen && (
+          <div className="flex-1 flex flex-col">
+            <div
+              className={`flex-1 flex flex-col ${
+                selectedPokemon && "lg:block"
+              } ${isSmallScreen && "hidden"}`}
+            >
+              <PokemonTable
+                pokemons={displayedPokemons}
+                initNumber={offset}
+                onPokemonSelect={handlePokemonSelection}
+                isPokemonDisplayed={selectedPokemon ? true : false}
+              />
+              <PaginationControls
+                page={page}
+                totalPages={totalPages}
+                goToNextPage={goToNextPage}
+                goToPrevPage={goToPrevPage}
+              />
+            </div>
           </div>
         )}
 
-        {isModalVisible && selectedPokemon && (
-          <div className="fixed inset-0 z-50 overflow-auto bg-smoke-light flex items-center justify-center">
-            <div className="relative p-8 bg-white w-full max-w-md m-auto flex-col flex rounded-lg shadow-lg">
-              <div className="flex flex-col items-center justify-center">
-                <PokemonDetails
-                  pokemon={selectedPokemon}
-                  onDeselect={handleCloseModal}
-                />
-              </div>
-            </div>
+        {selectedPokemon && (
+          <div
+            className={`w-full lg:w-auto max-w-md lg:flex-none animate__animated animate__fadeInDown  ${
+              isSmallScreen ? "flex justify-center" : ""
+            }`}
+          >
+            <PokemonDetails
+              pokemon={selectedPokemon}
+              onDeselect={handleCloseModal}
+            />
           </div>
         )}
       </div>

@@ -13,7 +13,6 @@ const usePokemons = () => {
     let isMounted = true;
 
     const fetchPokemons = async () => {
-      console.log("Entro a fetch");
       setLoading(true);
       try {
         const { results }: PokemonApiResponse = await pokemonApiRequest.getAll(

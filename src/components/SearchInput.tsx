@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { FunnelIcon, MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 
 type SearchInputProps = {
   value: string;
@@ -18,9 +19,19 @@ const SearchInput = React.memo(
     const ref = useRef<HTMLDivElement>(null);
 
     const handleClickOutside = (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
+      if (ref.current && !ref.current.contains(event.target as Node))
+        setIsFocused(false);
+    };
+
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === "Enter") {
         setIsFocused(false);
       }
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      onChange(e.target.value);
+      if (!isFocused) setIsFocused(true);
     };
 
     useEffect(() => {
@@ -31,15 +42,24 @@ const SearchInput = React.memo(
     }, []);
 
     return (
-      <div className="relative mb-4" ref={ref}>
-        <input
-          type="text"
-          placeholder="Buscar Pokémon"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onFocus={() => setIsFocused(true)}
-          className="p-2 border rounded w-full"
-        />
+      <div className="relative" ref={ref}>
+        <div className="flex items-center border-2 border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-purple-500">
+          <div className="pl-3">
+            <FunnelIcon className="w-5 h-5 text-gray-500" />
+          </div>
+          <input
+            type="text"
+            placeholder="Buscar Pokémon"
+            value={value}
+            onChange={handleChange}
+            onFocus={() => setIsFocused(true)}
+            onKeyDown={handleKeyDown}
+            className="p-2 w-full rounded-lg focus:outline-none"
+          />
+          <button type="submit" className="p-2">
+            <MagnifyingGlassIcon className="w-5 h-5 text-purple-500" />
+          </button>
+        </div>
         {isFocused && pokemonSuggestions.length > 0 && (
           <ul className="list-none mt-1 absolute z-10 w-full bg-white border rounded shadow-lg">
             {pokemonSuggestions.map((suggestion) => (
